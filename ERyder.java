@@ -1,11 +1,9 @@
 public class ERyder {
-    // 类属性
     private String bikeID;
     private int batteryLevel;
     private boolean isAvailable;
     private double kmDriven;
 
-    // 默认构造方法
     public ERyder() {
         this.bikeID = "DEFAULT_ID";
         this.batteryLevel = 100;
@@ -13,15 +11,13 @@ public class ERyder {
         this.kmDriven = 0.0;
     }
 
-    // 带参数的构造方法
     public ERyder(String bikeID, int batteryLevel, boolean isAvailable, double kmDriven) {
         this.bikeID = bikeID;
-        this.setBatteryLevel(batteryLevel); // 使用setter做参数校验
+        this.setBatteryLevel(batteryLevel); 
         this.isAvailable = isAvailable;
         this.kmDriven = kmDriven;
     }
 
-    // ride()方法
     public void ride() {
         if (batteryLevel > 0 && isAvailable) {
             System.out.println("The bike is fine.");
@@ -30,7 +26,6 @@ public class ERyder {
         }
     }
 
-    // printBikeDetails()方法
     public void printBikeDetails() {
         System.out.println("Bike ID: " + bikeID);
         System.out.println("Battery Level: " + batteryLevel + "%");
@@ -38,7 +33,6 @@ public class ERyder {
         System.out.println("Total Distance Driven: " + kmDriven + " km");
     }
 
-    // Getter和Setter
     public String getBikeID() {
         return bikeID;
     }
@@ -52,7 +46,6 @@ public class ERyder {
     }
 
     public void setBatteryLevel(int batteryLevel) {
-        // 校验电池范围0-100
         if (batteryLevel >= 0 && batteryLevel <= 100) {
             this.batteryLevel = batteryLevel;
         } else {
@@ -76,4 +69,5 @@ public class ERyder {
     public void setKmDriven(double kmDriven) {
         this.kmDriven = kmDriven;
     }
+
 }
