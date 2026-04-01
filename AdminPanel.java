@@ -1,9 +1,11 @@
-import java.util.*;
+import java.util.Scanner;
 
-class AdminPanel {
-    private final List<RegisteredUsers> registeredUsersList = new ArrayList<>();
+public class AdminPanel {
     private final Scanner sc = new Scanner(System.in);
-    private BikeRental bikeRental = new BikeRental();
+    private final UserService userService = new UserService();
+    private final BikeService bikeService = new BikeService();
+    private final RentalService rentalService = new RentalService();
+    private final UserRegistration userRegistration = new UserRegistration();
 
     public void userManagementOptions() {
         while (true) {
@@ -13,17 +15,19 @@ class AdminPanel {
             System.out.println("3. Remove Registered User");
             System.out.println("4. Update Registered User");
             System.out.println("5. Demo E-Bike Rental System");
-            System.out.println("6. Exit");
+            System.out.println("6. Check Balanced Brackets");
+            System.out.println("7. Exit");
             System.out.print("Please enter your choice: ");
 
             String choice = sc.nextLine();
             switch (choice) {
-                case "1": addNewUsers(); break;
-                case "2": viewRegisteredUsers(); break;
-                case "3": removeRegisteredUsers(); break;
-                case "4": updateRegisteredUsers(); break;
-                case "5": bikeRental.simulateApplicationInput(); break;
-                case "6":
+                case "1": userService.addNewUsers(); break;
+                case "2": userService.viewRegisteredUsers(); break;
+                case "3": userService.removeRegisteredUsers(); break;
+                case "4": userService.updateRegisteredUsers(); break;
+                case "5": simulateRental(); break;
+                case "6": new BracketChecker().checkBrackets(); break;
+                case "7":
                     System.out.println("Exiting Admin Panel...");
                     return;
                 default:
@@ -32,168 +36,43 @@ class AdminPanel {
         }
     }
 
-    private void addNewUsers() {
-        System.out.print("\nHow many users do you want to add: ");
-        int count = Integer.parseInt(sc.nextLine());
+    private void simulateRental() {
+        System.out.println("\n===== E-Bike Rental Process Simulation =====");
 
-        for (int i = 1; i <= count; i++) {
-            System.out.println("\n----- Adding User " + i + " -----");
+        System.out.print("Are you a registered user (true/false): ");
+        boolean isRegistered = Boolean.parseBoolean(sc.nextLine());
 
-            System.out.print("Enter Full Name: ");
-            String fullName = sc.nextLine();
-
-            System.out.print("Enter Email: ");
-            String email = sc.nextLine();
-
-            System.out.print("Enter DOB (YYYY-MM-DD): ");
-            String dob = sc.nextLine();
-
-            System.out.print("Enter Card Number: ");
-            long cardNum = Long.parseLong(sc.nextLine());
-
-            System.out.print("Enter Card Provider (VISA/MasterCard/AE): ");
-            String provider = sc.nextLine();
-
-            System.out.print("Enter Card Expiry (MM/YY): ");
-            String expiry = sc.nextLine();
-
-            System.out.print("Enter CVV: ");
-            int cvv = Integer.parseInt(sc.nextLine());
-
-            System.out.print("Enter User Type (Regular/VIP): ");
-            String type = sc.nextLine();
-
-            String[] trips = new String[3];
-            System.out.println("\n----- Enter Last 3 Trips -----");
-            for (int t = 0; t < 3; t++) {
-                System.out.println("\nTrip " + (t+1) + ":");
-                System.out.print("Date (YYYY-MM-DD): ");
-                String date = sc.nextLine();
-
-                System.out.print("Start Location: ");
-                String start = sc.nextLine();
-
-                System.out.print("End Location: ");
-                String end = sc.nextLine();
-
-                System.out.print("Fare: ");
-                String fare = sc.nextLine();
-
-                System.out.print("Feedback (can be empty): ");
-                String feedback = sc.nextLine();
-
-                StringBuilder trip = new StringBuilder();
-                trip.append("Date: ").append(date)
-                    .append(", From: ").append(start)
-                    .append(", To: ").append(end)
-                    .append(", Fare: ").append(fare)
-                    .append(", Feedback: ").append(feedback.isEmpty() ? "None" : feedback);
-
-                trips[t] = trip.toString();
-            }
-
-            RegisteredUsers user = new RegisteredUsers(
-                    fullName, email, dob, cardNum, expiry, provider, cvv, type, trips
-            );
-            registeredUsersList.add(user);
-            System.out.println("User " + i + " added successfully!");
-        }
-    }
-
-    private void viewRegisteredUsers() {
-        if (registeredUsersList.isEmpty()) {
-            System.out.println("\nNo registered users to display.");
-            return;
-        }
-
-        System.out.println("\n===== All Registered Users =====");
-        for (RegisteredUsers user : registeredUsersList) {
-            System.out.println(user);
-        }
-    }
-
-    private void removeRegisteredUsers() {
-        if (registeredUsersList.isEmpty()) {
-            System.out.println("\nNo users to remove.");
-            return;
-        }
-
-        System.out.print("\nEnter email of user to remove: ");
+        System.out.print("Enter email address: ");
         String email = sc.nextLine();
-        boolean found = false;
 
-        Iterator<RegisteredUsers> iterator = registeredUsersList.iterator();
-        while (iterator.hasNext()) {
-            RegisteredUsers user = iterator.next();
-            if (user.getEmailAddress().equals(email)) {
-                iterator.remove();
-                found = true;
-                System.out.println("User removed successfully!");
-                break;
-            }
+        System.out.print("Enter rental location: ");
+        String location = sc.nextLine();
+
+        System.out.println("\n----- Analyzing Rental Request -----");
+        if (isRegistered) {
+            System.out.println("Welcome back, " + email + "!");
+        } else {
+            System.out.println("You are not a registered user. Please register.");
+            userRegistration.registration();
         }
 
-        if (!found) {
-            System.out.println("User with this email not found.");
-        }
-    }
+        String bikeID = bikeService.validateLocation(location);
+        if (bikeID == null) return;
 
-    private void updateRegisteredUsers() {
-        if (registeredUsersList.isEmpty()) {
-            System.out.println("\nNo users to update.");
-            return;
-        }
+        System.out.println("\n----- Simulating E-Bike Reservation... -----");
+        java.time.LocalDateTime startTime = bikeService.reserveBike(bikeID);
+        if (startTime == null) return;
+        rentalService.startRental(bikeID, email, startTime);
 
-        System.out.print("\nEnter email of user to update: ");
-        String email = sc.nextLine();
-        RegisteredUsers target = null;
+        System.out.println("\n----- Displaying Current Active Rentals... -----");
+        rentalService.viewActiveRentals();
 
-        for (RegisteredUsers u : registeredUsersList) {
-            if (u.getEmailAddress().equals(email)) {
-                target = u;
-                break;
-            }
-        }
+        System.out.println("\n----- Simulating Trip Completion... -----");
+        rentalService.terminateRental(bikeID);
+        bikeService.releaseBike(bikeID);
+        System.out.println("Your trip has ended. Thank you for riding with us.");
 
-        if (target == null) {
-            System.out.println("User not found.");
-            return;
-        }
-
-        System.out.println("\n----- Update User Info (Press ENTER to keep old value) -----");
-
-        System.out.print("New Full Name: ");
-        String fn = sc.nextLine();
-        if (!fn.isEmpty()) target.setFullName(fn);
-
-        System.out.print("New Email: ");
-        String em = sc.nextLine();
-        if (!em.isEmpty()) target.setEmailAddress(em);
-
-        System.out.print("New DOB: ");
-        String dob = sc.nextLine();
-        if (!dob.isEmpty()) target.setDateOfBirth(dob);
-
-        System.out.print("New Card Provider: ");
-        String p = sc.nextLine();
-        if (!p.isEmpty()) target.setCardProvider(p);
-
-        System.out.print("New Card Expiry: ");
-        String exp = sc.nextLine();
-        if (!exp.isEmpty()) target.setCardExpiryDate(exp);
-
-        System.out.print("New User Type: ");
-        String ut = sc.nextLine();
-        if (!ut.isEmpty()) target.setUserType(ut);
-
-        System.out.print("New Card Number (0 = no change): ");
-        String cn = sc.nextLine();
-        if (!cn.equals("0")) target.setCardNumber(Long.parseLong(cn));
-
-        System.out.print("New CVV (0 = no change): ");
-        String cv = sc.nextLine();
-        if (!cv.equals("0")) target.setCvv(Integer.parseInt(cv));
-
-        System.out.println("User updated successfully!");
+        System.out.println("\n----- Displaying Active Rentals After Trip... -----");
+        rentalService.viewActiveRentals();
     }
 }
